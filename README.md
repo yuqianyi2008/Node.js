@@ -1,17 +1,593 @@
-# Node.js
+- \## 什么是Markdown
 
-有些人说“这是一种通过javascript语言开发web服务端的东西”。更直白的可以理解为：node.js有非阻se塞，事件驱动/O等特性，从而让高并发（high concurrency）在的轮询和comet构建的应用中成为可能。
+   \>Markdown 是一种**轻量级标记语言**，创始人为[约翰·格鲁伯(John Gruber)](https://zh.wikipedia.org/wiki/約翰·格魯伯)。它允许人们“使用易读易写的纯文本格式编写文档，然后转换成有效的XHTML(或者HTML)文档”。
 
-　　浏览器给网站发请求的过程一直没怎么变过。当浏览器给网站发了请求，服务器收到了请求，然后开始搜寻被请求的资源。如果有需要，服务器还会查询一下数据库，最后把响应结果传回浏览器。不过，在传统的web服务器中，比如apache服务器，每一个请求都会让服务器创建一个新的进程来处理这个请求。
+   \- 轻量级标记语言
 
-　　后来又了ajax。有了ajax，我们就不用每次都请求一个完整的新页面了，取而代之的是每次只请求需要的部分就可以了。这显然是一个进步。但是比如你要建一个FriendFeed这样的社交网站（类似人人网那样的刷朋友新鲜事的网站），你的好友会随时的推送新的状态，然后你的新鲜事会实时自动刷新。要达成这个需求，我们需要让用户一直与服务器保持一个有效链接。目前最简单的实现方法就是让用户和服务器之间保持长轮询（long polling）。
+   \>轻量级标记语言（英语 : Lightweight Markup Language，简称LML）是一类用简单句法描述简单格式的文本语言。轻量级标记语言作为一种标记语言，它的语法简单，可方便地使用简单的文本编辑器输入，原生格式接近自然语言。所谓“轻量级”是相对于其他更丰富格式的标记语言而言的，比如 : 富文本格式语言RTF、超文本标记语言HTML、学术界排版语言TeX等。
 
-　　http请求不是持续的链接，你请求一次，服务器响应一次，然后就完了。长轮询是一种利用http模拟持续连接的技巧。具体来说或，只要页面载入了，不管你需不需要服务器给你相应信息，你都会给服务器发一个ajax请求。这个请求不同于一般的ajax请求，服务器不会直接给你返回信息，而是它要等着，直到服务器觉得该给你发信息了，它才会响应。比如，你的好友发了一条新鲜事，服务器就会把这个新鲜事当作响应发给你的浏览器，然后你的浏览器就刷新页面了。浏览器收到响应刷新完之后，再发送一条新的请求给服务器，这个请求依然不会立即被响应。于是就开始重复以上步骤。利用这个方法，可以让浏览器始终保持等待响应的状态。虽然以上过程依然只有非持续的http参与，但是我们模拟出了一个看似持续的连接状态
+   \## 基本语法
 
-我们再看传统的服务器比如apache。每次一个新用户连到你的网站上，你的服务器就得开一个连接，每个连接都需要占用一个进程，这些进程大部分时间都是闲着的（比如等着你的好友发新鲜事，等好友发完才给用户响应信息。或者等着数据库返回查询结果什么的）。虽然这些进程闲着，但是照样占用内存。这意味着，如果用户连接数的增长到一定规律，你服务器没准就要耗光内存直接瘫痪了。
+   \### 标题
 
-这种情况怎么解决？解决的方法就是刚才上边说的：非阻塞和事件驱动。这些概念在我们谈的这个情景里面其实也没那么难理解。把非阻塞的服务器想象成一个loop循环，这个loop会一个跑下去。一个新请求来了，这个loop就接了这个请求，把这个请求传给其他的进程（比如传给一个搞数据库查询的进程），然后响应一个回调（callback）。完事了这个loop继续跑，接其他的请求。这样下来，服务器就不会像之前那样傻等着数据库返回结果了。
+   Markdown 语法 :
 
-如果数据库把结果返回了，loop就把结果传回用户的浏览器。接着继续跑。在这种方式下，你的服务器的进程就不会闲着等着了。从而在理论上说，同一时刻的数据库查询数量，以及用户的请求数量就没有限制了。服务器只在用户那边有事发生的时候才响应，这就是事件驱动。
+   \```
 
-FriendFeed是用基于Python的非阻塞框架Tornado（知乎也用了这个框架）来实现上面说的新鲜事功能的。不过nodejs就比前者更妙了。nodejs的应用是通过javascript开发的，然后直接在google的变态V8引擎上跑。用了nodejs，你就不用担心担心用户端的请求会在服务器里跑了一段能够造成阻塞的代码了。因为javascript本身就是事件驱动的脚本语言。你回想一下，在给前端写javascript的时候，更多时候你都是在搞事件处理和回掉函数。javascript本身就是给事件处理量身定制的语言。
+   \# 第一级标题 `<h1>`
+
+   \## 第二级标题 `<h2>`
+
+   \### 第三级标题 `<h3>`
+
+   \#### 第四级标题 `<h4>`
+
+   \##### 第五级标题 `<h5>`
+
+   \###### 第六级标题 `<h6>`
+
+   \```
+
+   效果如下 :
+
+   \# 第一级标题 `<h1>`
+
+   \## 第二级标题 `<h2>`
+
+   \### 第三级标题 `<h3>`
+
+   \#### 第四级标题 `<h4>`
+
+   \##### 第五级标题 `<h5>`
+
+   \###### 第六级标题 `<h6>`
+
+   \----
+
+   \### 强调
+
+   Markdown 语法 :
+
+   \```
+
+   *斜体 ( I )`<em>`*
+
+   _下划线 ( U )`<u>`_
+
+   **加粗 ( B )`<strong>`**
+
+   __加粗 ( B )`<strong>`__
+
+   \```
+
+   效果如下 :
+
+   *斜体 ( I )`<em>`*
+
+   _下划线 ( U )`<u>`_
+
+   **加粗 ( B )`<strong>`**
+
+   __加粗 ( B )`<strong>`__
+
+   <u> 下划线 </u>
+
+   \----
+
+   \### 分割线
+
+   以下三种方式都可以生成分隔线 :
+
+   \```
+
+   ***
+
+   *****
+
+   \- - -
+
+   \```
+
+   效果如下 :
+
+   ***
+
+   *****
+
+   \- - -
+
+   \----
+
+   \### 删除线
+
+   Markdown 语法 :
+
+   \```
+
+   删除线 :  ~~删除线~~
+
+   \```
+
+   效果如下 :
+
+   删除线 :  ~~删除线~~
+
+   \----
+
+   \### 列表
+
+   \#### 无序列表
+
+   Markdown 语法 :
+
+   \```
+
+   \* 项目一
+
+   \* 项目二
+
+   ​     * 项目二的子项目一
+
+   ​     * 项目二的子项目二
+
+   \```
+
+   效果如下 :
+
+   \* 项目一 无序列表
+
+   \* 项目二
+
+   ​     * 项目二的子项目一 无序列表
+
+   ​     * 项目二的子项目二
+
+   \----
+
+   \#### 有序列表
+
+   Markdown 语法 :
+
+   \```
+
+   \1. 项目一
+
+   \2. 项目二
+
+   \3. 项目三
+
+   ​     1. 项目三的子项目一
+
+   ​     2. 项目三的子项目二
+
+   \```
+
+   效果如下 :
+
+   \1. 项目一
+
+   \2. 项目二
+
+   \3. 项目三
+
+   ​     1. 项目三的子项目一
+
+   ​     2. 项目三的子项目二
+
+   \----
+
+   \#### 任务清单
+
+   Markdown 语法 :
+
+   \```
+
+   \- [ ] 任务一 未完成
+
+   \- [x] 任务二 已完成
+
+   \```
+
+   效果如下 :
+
+   \- [ ] 任务一 未完成
+
+   \- [x] 任务二 已完成
+
+   \---
+
+   \###链接
+
+   Markdown 语法 :
+
+   \```
+
+   Email :  <example@dingdangnao.com>  
+
+   显示链接标题 : [Google](http://google.com)  
+
+   显示链接地址 :  <http://google.com/>   
+
+   \```
+
+   Email :  <example@dingdangnao.com>
+
+   显示链接标题 : [Google](http://google.com)
+
+   显示链接地址 :  <http://google.com/>
+
+   <a href="http://www.google.com">Google</a>
+
+   \----
+
+   \### 图片
+
+   Markdown 语法 :
+
+   \```
+
+   ![Image Title](https://www.google.com/logos/doodles/2015/googles-new-logo-5078286822539264.3-hp2x.gif)
+
+   \```
+
+   ![Image Title](https://www.google.com/logos/doodles/2015/googles-new-logo-5078286822539264.3-hp2x.gif)
+
+   \----
+
+   \### 引用
+
+   Markdown 语法 :
+
+   \```
+
+   某某说:
+
+   \> 第一行引用
+
+   \> 第二行引用文字...
+
+   \```
+
+   效果如下 :
+
+   某某说:
+
+   \> 第一行引用
+
+   \> 第二行引用文字...
+
+   \----
+
+   \### 行内代码
+
+   Markdown 语法 :
+
+   \```
+
+   行内代码 : `console.log("666")`
+
+   \```
+
+   行内代码 : `console.log("666")`
+
+   \### 代码块
+
+   Markdown 语法 :
+
+   \```php
+
+   function sql_select($sql_address, $sql_command)
+
+   {
+
+   ​     $sql_address = new mysqli("localhost", "root", "", "information_schema");
+
+   ​     if ($sql_address->connect_errno) {
+
+   ​          die($sql_address->connect_errno);
+
+   ​     }
+
+   ​     $sql_address->query("SET NAMES UTF8");
+
+   ​     $result = $sql_address->query($sql_command);
+
+   ​     if ($result) {
+
+   ​          return $result->fetch_all(MYSQLI_ASSOC);
+
+   ​     } else {
+
+   ​          return false;
+
+   ​     }
+
+   ​     $sql_address->close();
+
+   }
+
+   \```
+
+   \---
+
+   \## 进阶语法
+
+   \###TOC
+
+   Markdown 语法 :
+
+   \```
+
+   [TOC]
+
+   \```
+
+   效果如下 :
+
+   [TOC]
+
+   \### 表格
+
+   Markdown 语法 :
+
+   \```
+
+   | 表头1 | 表头2 | 表头3 |
+
+   | :---- | :----: | ----: |
+
+   | 一行一列 | 一行二列 | 一行三列 |
+
+   | 一行一列 | 一行二列 | 一行三列 |
+
+   | 左对齐 | 居中 | 右对齐 |
+
+   \```
+
+   效果如下 :
+
+   | 表头1 | 表头2 | 表头3 |
+
+   | :---- | :----: | ----: |
+
+   | 一行一列 | 一行二列 | 一行三列 |
+
+   | 一行一列 | 一行二列 | 一行三列 |
+
+   | 左对齐 | 居中 | 右对齐 |
+
+   <table>
+
+   <tr><th>111</th><th>222</th></tr>
+
+   <tr><td>xxxx</td><td>yyyy</td></tr>
+
+   </table>
+
+   \### 公式
+
+   [Math Jax](https://math.meta.stackexchange.com/questions/5020/mathjax-basic-tutorial-and-quick-reference)
+
+   $$ \alpha \beta \gamma \omega$$
+
+   $\sum_{i=0}^n i^2 = \frac{(n^2+n)(2n+1)}{6}$
+
+   $$\sum_{i=0}^n i^2 = \frac{(n^2+n)(2n+1)}{6}$$
+
+   \### 流程图
+
+   <http://adrai.github.io/flowchart.js/>
+
+   Markdown 语法 :
+
+   ​     ```flow
+
+   ​    st=>start: 开始
+
+   ​    e=>end: 结束
+
+   ​    op=>operation: 我的操作
+
+   ​    cond=>condition: 确认？
+
+   ​    st->op->cond
+
+   ​    cond(yes)->e
+
+   ​    cond(no)->op
+
+   ​    ```
+
+   效果如下 :
+
+   \```flow
+
+   st=>start: 开始
+
+   e=>end: 结束
+
+   op=>operation: 操作
+
+   cond=>condition: 确认？
+
+   st->op->cond
+
+   cond(yes)->e
+
+   cond(no)->op
+
+   \```
+
+   \----
+
+   \### 序列图
+
+   <http://bramp.github.io/js-sequence-diagrams/>
+
+   Markdown 语法 :
+
+   ​     ```sequence
+
+   ​    A->B: How are you?
+
+   ​     Note right of B: B thinks
+
+   ​     B-->A: I am fine thank you, and you?
+
+   ​     A--B: I'm fine, too.
+
+   ​     ```
+
+   效果如下 :
+
+   \```sequence
+
+   ​    A->B: How are you?
+
+   ​     Note right of B: B thinks
+
+   ​     B-->A: I am fine thank you, and you?
+
+   ​     A--B: I'm fine, too.
+
+   \```
+
+   \----
+
+   \### 甘特图
+
+   \```gantt
+
+   ​    title 项目开发流程
+
+   ​    section 项目确定
+
+   ​        需求分析       :a1, 2016-06-22, 3d
+
+   ​        可行性报告     :after a1, 5d
+
+   ​        概念验证       : 5d
+
+   ​    section 项目实施
+
+   ​        概要设计      :2016-07-05  , 5d
+
+   ​        详细设计      :2016-07-08, 10d
+
+   ​        编码          :2016-07-15, 10d
+
+   ​        测试          :2016-07-22, 5d
+
+   ​    section 发布验收
+
+   ​        发布: 2d
+
+   ​        验收: 3d
+
+   \```
+
+   \----
+
+   \## Markdown 软件
+
+   \### Mac
+
+   \* [MWeb](http://zh.mweb.im)
+
+   \* [Ulysses](https://ulyssesapp.com)
+
+   \* [有道云笔记](https://note.youdao.com)
+
+   \* [Day One](http://dayoneapp.com)
+
+   \* [typora](https://typora.io)
+
+   \* [Cmd Markdown](https://www.zybuluo.com/cmd/)   
+
+   \### Windows
+
+   \* [有道云笔记](https://note.youdao.com)
+
+   \* [typora](https://typora.io)
+
+   \* [Markdown Editor](http://chenguanzhou.github.io/MarkDownEditor/)
+
+   \* [Cmd Markdown](https://www.zybuluo.com/cmd/)    
+
+   \### Web
+
+   \* [简书](http://jianshu.com)
+
+   \* [Cmd Markdown](https://www.zybuluo.com/cmd/)   
+
+   \* [有道云笔记](https://note.youdao.com)
+
+   \----
+
+   \# 图床
+
+   \>一般是指储存图片的服务器
+
+   \* Mac
+
+   [[iPic](https://toolinbox.net/iPic/)]()
+
+   \* Windows
+
+   ​     [MPic](http://mpic.lzhaofu.cn/)
+
+   \# 翻墙
+
+   \## 1. Lantern
+
+   []()
+
+   500MB/mo     Free Account
+
+   \## 2. Shadowsocks
+
+   <http://portal.shadowsocks.com.hk>    
+
+   \## 3. 鱼摆摆 *for Mac Only*
+
+   ![](https://ww1.sinaimg.cn/large/006tKfTcly1fe4ki8bk0tj315o0poac4.jpg)
+
+   \## 4.自己搭梯子
+
+   \* [Vultr](http://www.vultr.com)     
+
+   ![](https://ww2.sinaimg.cn/large/006tKfTcly1fe4kz6l4bgj31kw0ogaga.jpg)
+
+   \* [HoustUs](https://hostus.us/)    
+
+   ![](https://ww1.sinaimg.cn/large/006tKfTcly1fe4kygtiffj317u0bsn0d.jpg)
+
+   \* [Digital Ocean](https://www.digitalocean.com/)    
+
+   ![](https://ww3.sinaimg.cn/large/006tKfTcly1fe4l15s2y0j31kw0o4n0l.jpg)
+
+   \## app
+
+   \* macOS
+
+   [[Shadowsocks](https://shadowsocks.org/en/download/clients.html)]()
+
+   ​     [Surge](http://nssurge.com)
+
+   \* Windows
+
+   [[Shadowsocks](https://shadowsocks.org/en/download/clients.html)]()
+
+   \* iOS
+
+   [[Shadowrocket](https://itunes.apple.com/cn/app/shadowrocket/id932747118?mt=8)]()
+
+   [[Potatso](https://itunes.apple.com/app/apple-store/id1070901416?pt=2305194&ct=shadowsocks.org&mt=8)]()
+
+   [[Surge](https://itunes.apple.com/cn/app/surge-web-developer-tool-and-proxy-utility/id1040100637?mt=8)]()
+
+   \* Android
+
+   [[Shadowsocks](https://github.com/shadowsocks/shadowsocks-android/releases)]()
+
+   \----
